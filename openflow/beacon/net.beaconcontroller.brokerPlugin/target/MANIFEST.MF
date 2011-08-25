@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Export-Package: net.beaconcontroller.brokerPlugin
+Bundle-Version: 0.1.0.201108241810
+Bundle-Name: net.beaconcontroller.brokerPlugin
+Bundle-ManifestVersion: 2
+Import-Package: net.beaconcontroller.core,net.beaconcontroller.core.io
+ ,net.beaconcontroller.getAppContext,net.beaconcontroller.packet,net.b
+ eaconcontroller.topology,org.openflow.io,org.openflow.protocol,org.op
+ enflow.protocol.action,org.openflow.protocol.factory,org.openflow.uti
+ l,org.slf4j;version="1.5.11",org.springframework.core;version="3.0.0"
+ ,org.springframework.beans;version="3.0.0.RELEASE",org.springframewor
+ k.beans.factory;version="3.0.0.RELEASE",org.springframework.context;v
+ ersion="3.0.0.RELEASE",org.springframework.expression;version="3.0.0.
+ RELEASE"
+Bundle-SymbolicName: net.beaconcontroller.brokerPlugin
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+

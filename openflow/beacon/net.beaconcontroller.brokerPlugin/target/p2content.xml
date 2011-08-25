@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='1'>
+  <unit id='net.beaconcontroller.brokerPlugin' version='0.1.0.201108241810' singleton='false'>
+    <update id='net.beaconcontroller.brokerPlugin' range='[0.0.0,0.1.0.201108241810)' severity='0'/>
+    <properties size='4'>
+      <property name='org.eclipse.equinox.p2.name' value='net.beaconcontroller.brokerPlugin'/>
+      <property name='maven-groupId' value='net.beaconcontroller'/>
+      <property name='maven-artifactId' value='net.beaconcontroller.brokerPlugin'/>
+      <property name='maven-version' value='0.1.0-SNAPSHOT'/>
+    </properties>
+    <provides size='4'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='net.beaconcontroller.brokerPlugin' version='0.1.0.201108241810'/>
+      <provided namespace='osgi.bundle' name='net.beaconcontroller.brokerPlugin' version='0.1.0.201108241810'/>
+      <provided namespace='java.package' name='net.beaconcontroller.brokerPlugin' version='0.0.0'/>
+      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+    </provides>
+    <requires size='16'>
+      <required namespace='java.package' name='net.beaconcontroller.core' range='0.0.0'/>
+      <required namespace='java.package' name='net.beaconcontroller.core.io' range='0.0.0'/>
+      <required namespace='java.package' name='net.beaconcontroller.getAppContext' range='0.0.0'/>
+      <required namespace='java.package' name='net.beaconcontroller.packet' range='0.0.0'/>
+      <required namespace='java.package' name='net.beaconcontroller.topology' range='0.0.0'/>
+      <required namespace='java.package' name='org.openflow.io' range='0.0.0'/>
+      <required namespace='java.package' name='org.openflow.protocol' range='0.0.0'/>
+      <required namespace='java.package' name='org.openflow.protocol.action' range='0.0.0'/>
+      <required namespace='java.package' name='org.openflow.protocol.factory' range='0.0.0'/>
+      <required namespace='java.package' name='org.openflow.util' range='0.0.0'/>
+      <required namespace='java.package' name='org.slf4j' range='1.5.11'/>
+      <required namespace='java.package' name='org.springframework.core' range='3.0.0'/>
+      <required namespace='java.package' name='org.springframework.beans' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.beans.factory' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.context' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.expression' range='3.0.0.RELEASE'/>
+    </requires>
+    <artifacts size='1'>
+      <artifact classifier='osgi.bundle' id='net.beaconcontroller.brokerPlugin' version='0.1.0.201108241810'/>
+    </artifacts>
+    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+    <touchpointData size='1'>
+      <instructions size='1'>
+        <instruction key='manifest'>
+          Bundle-ManifestVersion: 2&#xA;Built-By: root&#xA;Export-Package: net.beaconcontroller.brokerPlugin&#xA;Bundle-RequiredExecutionEnvironment: JavaSE-1.6&#xA;Archiver-Version: Plexus Archiver&#xA;Build-Jdk: 1.6.0_24&#xA;Bundle-Name: net.beaconcontroller.brokerPlugin&#xA;Bundle-Version: 0.1.0.201108241810&#xA;Bundle-SymbolicName: net.beaconcontroller.brokerPlugin&#xA;Import-Package: net.beaconcontroller.core,net.beaconcontroller.core.io,net.beaconcontroller.getAppContext,net.beaconcontroller.packet,net.beaconcontroller.topology,org.openflow.io,org.openflow.protocol,org.openflow.protocol.action,org.openflow.protocol.factory,org.openflow.util,org.slf4j;version=&quot;1.5.11&quot;,org.springframework.core;version=&quot;3.0.0&quot;,org.springframework.beans;version=&quot;3.0.0.RELEASE&quot;,org.springframework.beans.factory;version=&quot;3.0.0.RELEASE&quot;,org.springframework.context;version=&quot;3.0.0.RELEASE&quot;,org.springframework.expression;version=&quot;3.0.0.RELEASE&quot;&#xA;Created-By: Apache Maven&#xA;Manifest-Version: 1.0&#xA;
+        </instruction>
+      </instructions>
+    </touchpointData>
+  </unit>
+</units>
