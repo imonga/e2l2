@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?artifactRepository version='1.1.0'?>
+<artifacts size='1'>
+  <artifact classifier='osgi.bundle' id='net.beaconcontroller.getAppContext' version='0.1.0.201108241810'>
+    <properties size='6'>
+      <property name='artifact.size' value='3462'/>
+      <property name='download.size' value='3462'/>
+      <property name='download.md5' value='71e07d7ded4695977ae60db414a04a71'/>
+      <property name='maven-groupId' value='net.beaconcontroller'/>
+      <property name='maven-artifactId' value='net.beaconcontroller.getAppContext'/>
+      <property name='maven-version' value='0.1.0-SNAPSHOT'/>
+    </properties>
+  </artifact>
+</artifacts>

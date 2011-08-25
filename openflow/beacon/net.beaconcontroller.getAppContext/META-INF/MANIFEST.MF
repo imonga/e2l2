@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: GetAppContext
+Bundle-SymbolicName: net.beaconcontroller.getAppContext
+Bundle-Version: 0.1.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: org.openflow.protocol,
+ org.slf4j;version="1.5.11",
+ org.springframework.asm;version="3.0.0.RELEASE",
+ org.springframework.beans;version="3.0.0.RELEASE",
+ org.springframework.context;version="3.0.0.RELEASE",
+ org.springframework.expression;version="3.0.0.RELEASE",
+ org.springframework.core;version="3.0.0"
+Export-Package: net.beaconcontroller.getAppContext

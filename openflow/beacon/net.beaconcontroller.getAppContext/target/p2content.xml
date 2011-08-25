@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='1'>
+  <unit id='net.beaconcontroller.getAppContext' version='0.1.0.201108241810' singleton='false'>
+    <update id='net.beaconcontroller.getAppContext' range='[0.0.0,0.1.0.201108241810)' severity='0'/>
+    <properties size='4'>
+      <property name='org.eclipse.equinox.p2.name' value='GetAppContext'/>
+      <property name='maven-groupId' value='net.beaconcontroller'/>
+      <property name='maven-artifactId' value='net.beaconcontroller.getAppContext'/>
+      <property name='maven-version' value='0.1.0-SNAPSHOT'/>
+    </properties>
+    <provides size='4'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='net.beaconcontroller.getAppContext' version='0.1.0.201108241810'/>
+      <provided namespace='osgi.bundle' name='net.beaconcontroller.getAppContext' version='0.1.0.201108241810'/>
+      <provided namespace='java.package' name='net.beaconcontroller.getAppContext' version='0.0.0'/>
+      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+    </provides>
+    <requires size='7'>
+      <required namespace='java.package' name='org.openflow.protocol' range='0.0.0'/>
+      <required namespace='java.package' name='org.slf4j' range='1.5.11'/>
+      <required namespace='java.package' name='org.springframework.asm' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.beans' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.context' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.expression' range='3.0.0.RELEASE'/>
+      <required namespace='java.package' name='org.springframework.core' range='3.0.0'/>
+    </requires>
+    <artifacts size='1'>
+      <artifact classifier='osgi.bundle' id='net.beaconcontroller.getAppContext' version='0.1.0.201108241810'/>
+    </artifacts>
+    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+    <touchpointData size='1'>
+      <instructions size='1'>
+        <instruction key='manifest'>
+          Bundle-ManifestVersion: 2&#xA;Built-By: root&#xA;Export-Package: net.beaconcontroller.getAppContext&#xA;Bundle-RequiredExecutionEnvironment: JavaSE-1.6&#xA;Archiver-Version: Plexus Archiver&#xA;Build-Jdk: 1.6.0_24&#xA;Bundle-Name: GetAppContext&#xA;Bundle-Version: 0.1.0.201108241810&#xA;Bundle-SymbolicName: net.beaconcontroller.getAppContext&#xA;Import-Package: org.openflow.protocol,org.slf4j;version=&quot;1.5.11&quot;,org.springframework.asm;version=&quot;3.0.0.RELEASE&quot;,org.springframework.beans;version=&quot;3.0.0.RELEASE&quot;,org.springframework.context;version=&quot;3.0.0.RELEASE&quot;,org.springframework.expression;version=&quot;3.0.0.RELEASE&quot;,org.springframework.core;version=&quot;3.0.0&quot;&#xA;Created-By: Apache Maven&#xA;Manifest-Version: 1.0&#xA;
+        </instruction>
+      </instructions>
+    </touchpointData>
+  </unit>
+</units>
