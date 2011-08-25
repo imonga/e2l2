@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: net.beaconcontroller.loader
+Bundle-SymbolicName: net.beaconcontroller.loader
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-package: net.beaconcontroller.core,
+ org.osgi.framework,
+ org.osgi.service.packageadmin,
+ org.slf4j;version="1.5.11",
+ org.slf4j.helpers;version="1.5.11",
+ org.slf4j.spi;version="1.5.11",
+ org.springframework.aop;version="3.0.4.RELEASE",
+ org.springframework.beans;version="3.0.4.RELEASE",
+ org.springframework.context;version="3.0.4.RELEASE",
+ org.springframework.core;version="3.0.4.RELEASE",
+ org.springframework.osgi;version="2.0.0.M1",
+ org.springframework.osgi.extender;version="2.0.0.M1"
+Export-Package: net.beaconcontroller.loader
+ 
