@@ -4,7 +4,7 @@ GETTING BEACON CODE
 Instructions for checking out Beacon and OpenflowJ code and installing the prerequisites are given in the following link:
 https://openflow.stanford.edu/display/Beacon/Quick+Start
 
-FILE ORGANIZATION\
+FILE ORGANIZATION
 -----------------------------
 E2L2 source code contains the following :
 
@@ -92,7 +92,7 @@ Changing java.policy file on your system to trust brokerPlugin code and give sec
 
 For my mac-mini I found the file in /Library/Java/Home/lib/security. For linux systems , you could find it in one of these locations- /etc/java-6-openjdk/security/, /etc/java-6-sun/security or just do "whereas java" to know where all you have java libraries and then you can find the file in the security folder. 
 
-1. Modify your java.policy file to grant permission for beacon codeBase. Add the following:\
+1. Modify your java.policy file to grant permission for beacon codeBase. Add the following:
 
 grant codeBase "file:path/to/beacon/directory/-" \{
     permission java.security.AllPermission;
@@ -141,18 +141,18 @@ Building your own plugin along with beacon using maven:
   <packaging>eclipse-plugin</packaging>
 </project>
 
-4. Replace PLUGIN-NAME with the name of your beacon plugin\
+4. Replace PLUGIN-NAME with the name of your beacon plugin
 
-5. Make sure that the <version>0.1.0-SNAPSHOT</version> in "pom.xml" is same is as the version number in the MANIFEST.MF file in your META-INF directory :  Bundle-Version: 0.1.0.qualifier\
+5. Make sure that the <version>0.1.0-SNAPSHOT</version> in "pom.xml" is same is as the version number in the MANIFEST.MF file in your META-INF directory :  Bundle-Version: 0.1.0.qualifier
 
-6. Now, change the "pom.xml" file in net.beaconcontroller.parent directory to include your plugin in the modules section : <module>../PLUGIN-NAME</module>\
+6. Now, change the "pom.xml" file in net.beaconcontroller.parent directory to include your plugin in the modules section : <module>../PLUGIN-NAME</module>
 
-7. Now, you should be able to build your plugin using maven (make sure you have maven 3.0 or above to build it), \
-     - If you have not already done so, go to openflowj directory and type: mvn install\
-    - Next, go to net.beaconcontroller.parent and type: mvn integration-test (it will take about 3 minutes to build the whole project)\
+7. Now, you should be able to build your plugin using maven (make sure you have maven 3.0 or above to build it), 
+     - If you have not already done so, go to openflowj directory and type: mvn install
+    - Next, go to net.beaconcontroller.parent and type: mvn integration-test (it will take about 3 minutes to build the whole project)
 
-8. To deploy your plugin along with beacon-product, change the configuration file "beacon.product" inside net.beaconcontroller.product directory to include your plugin:\
-     - Modify "plugins" section to include your plugin: <plugin id="PLUGIN-NAME"/>\
-     - Modify "configurations" sections to include your plugin: <plugin id="PLUGIN-NAME" autoStart="true" startLevel="0" />\
+8. To deploy your plugin along with beacon-product, change the configuration file "beacon.product" inside net.beaconcontroller.product directory to include your plugin:
+     - Modify "plugins" section to include your plugin: <plugin id="PLUGIN-NAME"/>
+     - Modify "configurations" sections to include your plugin: <plugin id="PLUGIN-NAME" autoStart="true" startLevel="0" />
 
 }
