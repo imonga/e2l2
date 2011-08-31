@@ -1,4 +1,4 @@
-//package appBroker;
+package appBroker;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;

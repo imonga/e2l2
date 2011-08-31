@@ -5,13 +5,16 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Arrays;
 
 import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFMatch;
@@ -19,6 +22,8 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.action.OFActionStripVirtualLan;
+import org.openflow.protocol.action.OFActionVirtualLanIdentifier;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +47,9 @@ import net.beaconcontroller.getAppContext.AppContextHolder;
  */
 
 public class PathDiscovery extends Node implements BrokerInterface {
-    
+
+	public static final int OFACTION_LAST_SWITCH = 1;
+	public static final int OFACTION_FIRST_SWITCH = 0;
     protected ITopology topology;
     protected IBeaconProvider beaconProvider;
     protected static ApplicationContext appContext;
@@ -336,6 +343,101 @@ public class PathDiscovery extends Node implements BrokerInterface {
     }
     
     /**
+     * check if the node is reachable from source
+     * If yes, program the OF switches in the shortest path 
+     */
+    public void programOFPath(Long dstDpid, byte[] srcMac, 
+            byte[] dstMac, Short firstIngressPort, Short lastEgressPort, short etherType, Short ingressVlan, Short egressVlan) throws RemoteException {
+        
+        Short inPort;
+        Short outPort;
+        
+        System.out.println("OF Path programmed");
+        
+        if (this.beaconProvider.getSwitches() == null) {
+            System.out.println("No Switches attached yet");
+            log.trace("No Switches attached yet");
+            return;
+        }
+        
+        IOFSwitch dst = this.beaconProvider.getSwitches().get(dstDpid);
+        
+        if(dst == null) {
+            log.info("dst node with dstDpid:" + dstDpid + "could not be found");
+            return;
+        }
+        
+        Node dstNode = this.nodeMap.get(dst);
+        
+        if (dstNode.distance < Double.POSITIVE_INFINITY) {
+            
+            if (dstNode.parent != null) {
+                LinkTuple link = dstNode.links.get(dstNode.parent);
+            
+                if(link.getSrc().getSw() == dstNode.sw) {
+                    inPort = link.getSrc().getPort(); 
+                } else {
+                    inPort = link.getDst().getPort();
+                }
+            } else {
+                //if there is only one switch such that first 
+                //switch is same as last switch in the path
+                inPort = firstIngressPort;
+                
+                //first switch so create a rule to match on ingress vlan and strip it off
+                this.createOFmsg(dstNode.sw, srcMac, dstMac, inPort, lastEgressPort, etherType, ingressVlan, PathDiscovery.OFACTION_FIRST_SWITCH);
+            }
+            //last switch so write egressVlan as part of action
+            this.createOFmsg(dstNode.sw, srcMac, dstMac, inPort, lastEgressPort, etherType, egressVlan, PathDiscovery.OFACTION_LAST_SWITCH);
+        } else {
+            log.error("destination is not reachable from source");
+            return;
+        }
+        
+        Node currNode = dstNode.parent;
+        Node childNode = dstNode;
+        
+        while(currNode != null) {
+            
+            if (currNode.parent != null) {
+                
+                LinkTuple link = currNode.links.get(currNode.parent);
+                
+                if (link.getSrc().getSw() == currNode) {
+                    inPort = link.getSrc().getPort();
+                } else {
+                    inPort = link.getDst().getPort();
+                }
+            } else {
+                inPort = firstIngressPort;
+            }
+            
+            LinkTuple link = childNode.links.get(currNode);
+            
+            if (link.getSrc().getSw() == currNode) {
+                outPort = link.getSrc().getPort();
+            } else {
+                outPort = link.getDst().getPort();
+            }
+            
+            if (currNode.parent != null) {
+            	//not the first or last switch, no vlan involved 
+            	this.createOFmsg(currNode.sw, srcMac, dstMac, inPort, outPort, etherType);
+            } else {
+            	//first switch, match with ingress vlan and strip vlan as a part of action
+            	this.createOFmsg(currNode.sw, srcMac, dstMac, inPort, outPort, etherType, ingressVlan, PathDiscovery.OFACTION_FIRST_SWITCH);
+            }
+            
+            childNode = currNode;
+            currNode = currNode.parent;
+        }
+        
+        System.out.println("switches programmed");
+        
+    }
+    
+    
+    /**
      * Creates OF message with the appropriate match and action
      * and writes it to the socket used to communicate with the switch
      */
@@ -348,13 +450,14 @@ public class PathDiscovery extends Node implements BrokerInterface {
         match.setInputPort(inPort);
         
         //wildcard to match on data-layer destination, source, ethertype and input port
-        int wildcard = ~(OFMatch.OFPFW_DL_TYPE | OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_DL_DST | OFMatch.OFPFW_IN_PORT);
+        int wildcard = ~(OFMatch.OFPFW_DL_TYPE | OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_DL_DST | OFMatch.OFPFW_IN_PORT | OFMatch.OFPFW_DL_VLAN);
         match.setWildcards(wildcard);
         
        // build action with port set to outPort
         OFActionOutput action = new OFActionOutput()
-         .setPort(outPort);
-       
+         .setPort(outPort);        
+        
+        
         System.out.println("action"+action);
         System.out.println("match"+match);
         System.out.println(String.format("0x%02X", match.getDataLayerType()));
@@ -368,7 +471,73 @@ public class PathDiscovery extends Node implements BrokerInterface {
         fm.setIdleTimeout(this.idleTimeOut)
               .setOutPort((short) OFPort.OFPP_NONE.getValue())
               .setMatch(match)
-              .setActions(Collections.singletonList((OFAction)action))
+              .setActions(Collections.singletonList((OFAction) action))
+              .setLength(U16.t(OFFlowMod.MINIMUM_LENGTH+OFActionOutput.MINIMUM_LENGTH));
+        try {
+            sw.getOutputStream().write(fm);
+        } catch (IOException e) {
+            log.error("Failure writing FlowMod", e);
+        } 
+    }
+    
+    /**
+     * Creates OF message with the appropriate match (also includes vlan translation)
+     * and action and writes it to the socket used to communicate with the switch
+     */
+    public void createOFmsg (IOFSwitch sw, byte[] srcMacAddr, byte[] dstMacAddr, Short inPort, Short outPort, short etherType, Short vlan, int flag) throws RemoteException {
+    	
+    	int wildcard = 0;
+        OFMatch match = new OFMatch();
+        match.setDataLayerType(etherType); 
+        match.setDataLayerSource(srcMacAddr);
+        match.setDataLayerDestination(dstMacAddr);
+        match.setInputPort(inPort);
+        
+        if(flag == PathDiscovery.OFACTION_FIRST_SWITCH) {
+        	match.setDataLayerVirtualLan(vlan);
+        }
+        
+        //wildcard to match on data-layer destination, source, ethertype and input port and vlan optionally
+        
+        if (flag == PathDiscovery.OFACTION_FIRST_SWITCH) {
+        	wildcard = ~(OFMatch.OFPFW_DL_TYPE | OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_DL_DST | OFMatch.OFPFW_IN_PORT | OFMatch.OFPFW_DL_VLAN);
+        } else {
+        	wildcard = ~(OFMatch.OFPFW_DL_TYPE | OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_DL_DST | OFMatch.OFPFW_IN_PORT); 
+        }
+        match.setWildcards(wildcard);
+        
+        // build action with port set to outPort
+        OFActionOutput action = new OFActionOutput()
+         .setPort(outPort);
+        
+        ArrayList<OFAction> actionList = new ArrayList<OFAction> ();
+        actionList.add((OFAction)action);
+         
+        //if last switch create an action to write egress vlan  
+        if (flag == PathDiscovery.OFACTION_LAST_SWITCH) { 
+        	OFActionVirtualLanIdentifier actionVlan = new OFActionVirtualLanIdentifier();
+        	actionVlan.setVirtualLanIdentifier(vlan);
+        	actionList.add((OFAction)actionVlan);
+        } else if (flag == PathDiscovery.OFACTION_FIRST_SWITCH) {
+        	//if first switch create an action to strip vlan
+        	OFActionStripVirtualLan actionStripVlan = new OFActionStripVirtualLan();
+        	actionList.add((OFAction)actionStripVlan);
+        }
+        
+        System.out.println("action"+action);
+        System.out.println("match"+match);
+        System.out.println(String.format("0x%02X", match.getDataLayerType()));
+        System.out.println(String.format("0x%02X", match.getDataLayerSource()));
+        System.out.println(String.format("0x%02X", match.getDataLayerDestination()));
+        
+        // build flow mod
+        OFFlowMod fm = (OFFlowMod) sw.getInputStream().getMessageFactory()
+            .getMessage(OFType.FLOW_MOD);
+        
+        fm.setIdleTimeout(this.idleTimeOut)
+              .setOutPort((short) OFPort.OFPP_NONE.getValue())
+              .setMatch(match)
+              .setActions(actionList)
               .setLength(U16.t(OFFlowMod.MINIMUM_LENGTH+OFActionOutput.MINIMUM_LENGTH));
         try {
             sw.getOutputStream().write(fm);
