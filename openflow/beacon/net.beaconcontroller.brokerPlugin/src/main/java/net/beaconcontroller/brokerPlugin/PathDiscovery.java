@@ -201,6 +201,9 @@ public class PathDiscovery extends Node implements BrokerInterface {
      * creates a breadth first tree for the topology graph(which is undirected)
      * with source as src node and destination as dst node using Breadth first
      * search algorithm
+     * 
+     * @param srcDpid Datapath id of source OF Switch
+     * @param dstDpid Datapath id of destination OF Switch
      */
     public void createBFT(Long srcDpid, Long dstDpid) throws RemoteException {
         
@@ -260,10 +263,19 @@ public class PathDiscovery extends Node implements BrokerInterface {
     
     /**
      * check if the node is reachable from source
-     * If yes, program the OF switches in the shortest path 
+     * If yes, program the OF switches in the shortest path
+     * 
+     *  @param dstDpid Datapath id of destination switch
+     *  @param srcMac source mac address 
+     *  @param dstMac destination mac address
+     *  @param firstIngressPort Ingress port of first OF switch connected to host
+     *  @param lastEgressPort Egress port of last OF switch connected to edge router
+     *  @param etherType data layer ethertype to create openflow filter
+     *  @param bidirectionalFlag flag to indicate whether switch is to be programmed
+     *  for bidirectional traffic - true for bidirectional and false for unidirectional
      */
     public void programOFPath(Long dstDpid, byte[] srcMac, 
-            byte[] dstMac, Short firstIngressPort, Short lastEgressPort, short etherType) throws RemoteException {
+            byte[] dstMac, Short firstIngressPort, Short lastEgressPort, short etherType, boolean bidirectionalFlag) throws RemoteException {
         
         Short inPort;
         Short outPort;
@@ -302,6 +314,10 @@ public class PathDiscovery extends Node implements BrokerInterface {
             }
             
             this.createOFmsg(dstNode.sw, srcMac, dstMac, inPort, lastEgressPort, etherType);
+            
+            if (bidirectionalFlag) {
+            	this.createOFmsg(dstNode.sw, dstMac, srcMac, lastEgressPort, inPort, etherType);
+            }
         } else {
             log.error("destination is not reachable from source");
             return;
@@ -334,6 +350,9 @@ public class PathDiscovery extends Node implements BrokerInterface {
             }
             this.createOFmsg(currNode.sw, srcMac, dstMac, inPort, outPort, etherType);
             
+            if (bidirectionalFlag) {
+                this.createOFmsg(currNode.sw, dstMac, srcMac, outPort, inPort, etherType);
+            }
             childNode = currNode;
             currNode = currNode.parent;
         }
@@ -345,9 +364,20 @@ public class PathDiscovery extends Node implements BrokerInterface {
     /**
      * check if the node is reachable from source
      * If yes, program the OF switches in the shortest path 
+     * 
+     * @param dstDpid Datapath id of last OF Switch
+     * @param srcMac source mac address 
+     * @param dstMac destination mac address
+     * @param firstIngressPort Ingress port of first OF switch connected to host
+     * @param lastEgressPort Egress port of last OF switch connected to edge router
+     * @param etherType data layer ethertype to create openflow filter
+     * @param ingressVlan vlan tag by the host
+     * @param egressVlan vlan tag returned by the OSCARS
+     * @param bidirectionalFlag flag to indicate whether switch is to be programmed
+     *  for bidirectional traffic - true for bidirectional and false for unidirectional
      */
     public void programOFPath(Long dstDpid, byte[] srcMac, 
-            byte[] dstMac, Short firstIngressPort, Short lastEgressPort, short etherType, Short ingressVlan, Short egressVlan) throws RemoteException {
+            byte[] dstMac, Short firstIngressPort, Short lastEgressPort, short etherType, Short ingressVlan, Short egressVlan, boolean bidirectionalFlag) throws RemoteException {
         
         Short inPort;
         Short outPort;
@@ -386,9 +416,20 @@ public class PathDiscovery extends Node implements BrokerInterface {
                 
                 //first switch so create a rule to match on ingress vlan and strip it off
                 this.createOFmsg(dstNode.sw, srcMac, dstMac, inPort, lastEgressPort, etherType, ingressVlan, PathDiscovery.OFACTION_FIRST_SWITCH);
+                
+                if (bidirectionalFlag) {
+                	//also last switch for other direction so add ingressVlan for traffic in other direction
+                    this.createOFmsg(dstNode.sw, dstMac, srcMac, lastEgressPort, inPort, etherType, ingressVlan, PathDiscovery.OFACTION_LAST_SWITCH);
+                }
+                
             }
             //last switch so write egressVlan as part of action
             this.createOFmsg(dstNode.sw, srcMac, dstMac, inPort, lastEgressPort, etherType, egressVlan, PathDiscovery.OFACTION_LAST_SWITCH);
+            if (bidirectionalFlag) {
+            	//for the opposite direction traffic, it will be the first switch
+            	//so it will match on OSCARS vlan and strip it off
+                this.createOFmsg(dstNode.sw, dstMac, srcMac, lastEgressPort, inPort, etherType, egressVlan, PathDiscovery.OFACTION_FIRST_SWITCH);	
+            } 
         } else {
             log.error("destination is not reachable from source");
             return;
@@ -423,9 +464,17 @@ public class PathDiscovery extends Node implements BrokerInterface {
             if (currNode.parent != null) {
             	//not the first or last switch, no vlan involved 
             	this.createOFmsg(currNode.sw, srcMac, dstMac, inPort, outPort, etherType);
+            	if (bidirectionalFlag) {
+            		this.createOFmsg(currNode.sw, dstMac, srcMac, outPort, inPort, etherType);
+            	}
             } else {
             	//first switch, match with ingress vlan and strip vlan as a part of action
             	this.createOFmsg(currNode.sw, srcMac, dstMac, inPort, outPort, etherType, ingressVlan, PathDiscovery.OFACTION_FIRST_SWITCH);
+            	
+            	if (bidirectionalFlag) {
+            		//also last switch for other direction
+            		this.createOFmsg(currNode.sw, dstMac, srcMac, outPort, inPort, etherType, ingressVlan, PathDiscovery.OFACTION_LAST_SWITCH);
+            	}
             }
             
             childNode = currNode;
@@ -440,6 +489,13 @@ public class PathDiscovery extends Node implements BrokerInterface {
     /**
      * Creates OF message with the appropriate match and action
      * and writes it to the socket used to communicate with the switch
+     * 
+     * @param sw switch on which rule is to be created
+     * @param srcMacAddr source mac address
+     * @param dstMacAddr destination mac address
+     * @param inPort ingress port
+     * @param outPort egress port
+     * @param etherType datalayer ethertype of the packets to be matched
      */
     public void createOFmsg (IOFSwitch sw, byte[] srcMacAddr, byte[] dstMacAddr, Short inPort, Short outPort, short etherType) throws RemoteException {
         
@@ -483,6 +539,14 @@ public class PathDiscovery extends Node implements BrokerInterface {
     /**
      * Creates OF message with the appropriate match (also includes vlan translation)
      * and action and writes it to the socket used to communicate with the switch
+     * @param sw switch on which rule is to be created
+     * @param srcMacAddr source mac address
+     * @param dstMacAddr destination mac address
+     * @param inPort ingress port
+     * @param outPort egress port
+     * @param etherType datalayer ethertype of the packets to be matched
+     * @param vlan vlan to include in the rule
+     * @param flag flag to indicate if it is first switch in the path or last switch
      */
     public void createOFmsg (IOFSwitch sw, byte[] srcMacAddr, byte[] dstMacAddr, Short inPort, Short outPort, short etherType, Short vlan, int flag) throws RemoteException {
     	
