@@ -506,7 +506,7 @@ public class PathDiscovery extends Node implements BrokerInterface {
         match.setInputPort(inPort);
         
         //wildcard to match on data-layer destination, source, ethertype and input port
-        int wildcard = ~(OFMatch.OFPFW_DL_TYPE | OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_DL_DST | OFMatch.OFPFW_IN_PORT | OFMatch.OFPFW_DL_VLAN);
+        int wildcard = ~(OFMatch.OFPFW_DL_TYPE | OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_DL_DST | OFMatch.OFPFW_IN_PORT);
         match.setWildcards(wildcard);
         
        // build action with port set to outPort
